@@ -73,6 +73,7 @@ noinst_HEADERS = \
 	src/sparc/ffitarget.h src/sparc/internal.h			\
 	src/tile/ffitarget.h						\
 	src/vax/ffitarget.h						\
+	src/wasm32/ffitarget.h					\
 	src/x86/ffitarget.h src/x86/internal.h src/x86/internal64.h src/x86/asmnames.h \
 	src/xtensa/ffitarget.h						\
 	src/dlmalloc.c
@@ -109,6 +110,7 @@ EXTRA_libffi_la_SOURCES = \
 	src/sparc/ffi.c src/sparc/ffi64.c src/sparc/v8.S src/sparc/v9.S	\
 	src/tile/ffi.c src/tile/tile.S					\
 	src/vax/ffi.c src/vax/elfbsd.S					\
+	src/wasm32/ffi.c								\
 	src/x86/ffi.c src/x86/sysv.S					\
 	 src/x86/ffiw64.c src/x86/win64.S 				\
 	 src/x86/ffi64.c src/x86/unix64.S				\
