@@ -85,7 +85,9 @@ ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
             sig = 'd';
         } else if (rtype === /* FFI_TYPE_UINT64 */ 11 ||
                    rtype === /* FFI_TYPE_SINT64 */ 12) {
-            throw new Error('int64 ret marshalling nyi');
+            // Warning: returns a truncated 32-bit integer directly.
+            // High bits are in $tempRet0
+            sig = 'j';
         } else if (rtype === /* FFI_TYPE_STRUCT */ 13) {
             throw new Error('struct ret marshalling nyi');
         } else if (rtype === /* FFI_TYPE_COMPLEX */ 15) {
@@ -124,11 +126,13 @@ ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
             } else if (typ === /* FFI_TYPE_UINT32 */ 9 || typ === /* FFI_TYPE_POINTER */ 14) {
                 args.push(HEAPU32[ptr >> 2]);
                 sig += 'i';
-            } else if (typ === /* FFI_TYPE_UINT64 */ 11) {
-                throw new Error('uint64 marshalling nyi');
-            } else if (typ === /* FFI_TYPE_SINT64*/ 12) {
-                throw new Error('int64 marshalling nyi');
-            } else if (typ === /* FFI_TYPE_STRUCT13 */ 13) {
+            } else if (typ === /* FFI_TYPE_UINT64 */ 11 || typ === /* FFI_TYPE_SINT64 */ 12) {
+                // LEGALIZE_JS_FFI mode splits i64 (j) into two i32 args
+                // for compatibility with JavaScript's f64-based numbers.
+                args.push(HEAPU32[ptr >> 2]);
+                args.push(HEAPU32[(ptr + 4) >> 2]);
+                sig += 'j';
+            } else if (typ === /* FFI_TYPE_STRUCT */ 13) {
                 throw new Error('struct marshalling nyi');
             } else if (typ === /* FFI_TYPE_COMPLEX */ 15) {
                 throw new Error('complex marshalling nyi');
@@ -158,7 +162,10 @@ ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
         } else if (rtype === 7 || rtype === 8) {
             HEAP16[rvalue >> 1] = result;
         } else if (rtype === 11 || rtype === 12) {
-            throw new Error('int64 ret marshalling nyi');
+            // Warning: returns a truncated 32-bit integer directly.
+            // High bits are in $tempRet0
+            HEAP32[rvalue >> 2] = result;
+            HEAP32[(rvalue + 4) >> 2] = Module.getTempRet0();
         } else if (rtype === 13) {
             throw new Error('struct ret marshalling nyi');
         } else if (rtype === 15) {
