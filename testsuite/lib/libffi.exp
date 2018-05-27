@@ -395,7 +395,7 @@ proc check-flags { args } {
     # compare them to the actual options.
     if { [string compare [lindex $args 2] "*"] == 0
 	 && [string compare [lindex $args 3] "" ] == 0 } {
-	set result 1    
+	set result 1
     } else {
 	# The target list might be an effective-target keyword, so replace
 	# the original list with "*-*-*", since we already know it matches.

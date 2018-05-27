@@ -64,6 +64,7 @@ ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
         // via name here...
         var args = [fn];
         var sig = '';
+        var sigFloat = Module['usingWasm'] ? 'f' : 'd';
 
         var rtype = HEAPU16[(cif_rtype + 6 /* rtype->type*/ ) >> 1];
         //console.error('rtype is', rtype);
@@ -79,7 +80,7 @@ ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
                    rtype === /* FFI_TYPE_POINTER */ 14) {
             sig = 'i';
         } else if (rtype === /* FFI_TYPE_FLOAT */ 2) {
-            sig = 'f';
+            sig = sigFloat;
         } else if (rtype === /* FFI_TYPE_DOUBLE */ 3 ||
                    rtype === /* FFI_TYPE_LONGDOUBLE */ 4) {
             sig = 'd';
@@ -107,7 +108,7 @@ ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
                 sig += 'i';
             } else if (typ === /* FFI_TYPE_FLOAT */ 2) {
                 args.push(HEAPF32[ptr >> 2]);
-                sig += 'f';
+                sig += sigFloat;
             } else if (typ === /* FFI_TYPE_DOUBLE */ 3 || typ === /* FFI_TYPE_LONGDOUBLE */ 4) {
                 args.push(HEAPF64[ptr >> 3]);
                 sig += 'd';
@@ -146,7 +147,17 @@ ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
         var func = Module['dynCall_' + sig];
         //console.error('func is', func);
         //console.error('args is', args);
-        var result = func.apply(null, args);
+        if (func) {
+          var result = func.apply(null, args);
+        } else {
+          console.error('fn is', fn);
+          console.error('sig is', sig);
+          console.error('args is', args);
+          for (var x in Module) {
+            console.error('-- ' + x);
+          }
+          throw new Error('invalid function pointer in ffi_call');
+        }
         //console.error('result is',result);
 
         if (rtype === 0) {
